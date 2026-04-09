@@ -4,14 +4,12 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void help() {
         System.out.println("Outils cli pour generer les changelogs (migrations) pour liquibase");
         System.out.println();
-        System.out.println("Syntaxe: liquishit auteur nom_de_la_migration");
-        System.out.println("Example: liquishit samuel create_user_table");
+        System.out.println("Syntaxe: java -jar liquishit.jar auteur nom_de_la_migration");
+        System.out.println("Example: java -jar liquishit.jar samuel create_user_table");
         System.out.println();
         System.out.println("L'exemple genere un fichier avec un template pret a recevoir du sql sous le format");
         System.out.println("yyyyMMddHHmmss_nom_de_la_migration.sql");

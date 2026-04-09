@@ -1,0 +1,7 @@
+# Liquishit
+Un outil en ligne de commande pour generer des changelogs pour Liquibase.
+
+## Installation
+Telecharger le jar dans la section release
+
+![Image showing where realease jars are](./release.png)
