@@ -13,6 +13,7 @@ public class Main {
     private static boolean hasRollback = false;
 
     public static void help() {
+        System.out.println("liquishit version: 2.0.0");
         System.out.println("Small cli tool to generate liquibase changelogs");
         System.out.println();
         System.out.println("Warning: Only works for projects using includeAll and pointed towards a /migration dir");
