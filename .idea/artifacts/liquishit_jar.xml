@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
-  <artifact type="jar" name="liquidshit:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/liquidshit_jar</output-path>
+  <artifact type="jar" name="liquishit:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/liquishit_jar</output-path>
     <root id="archive" name="liquidshit.jar">
       <element id="module-output" name="liquidshit" />
     </root>

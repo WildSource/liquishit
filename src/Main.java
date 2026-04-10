@@ -3,16 +3,30 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 public class Main {
+    private static final DateTimeFormatter SECONDS_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final DateTimeFormatter STANDARD_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+
+    private static DateTimeFormatter formatter = STANDARD_FORMATTER;
+    private static boolean hasRollback = false;
+
     public static void help() {
-        System.out.println("Outils cli pour generer les changelogs (migrations) pour liquibase");
+        System.out.println("Small cli tool to generate liquibase changelogs");
         System.out.println();
-        System.out.println("Syntaxe: java -jar liquishit.jar auteur nom_de_la_migration");
-        System.out.println("Example: java -jar liquishit.jar samuel create_user_table");
+        System.out.println("Warning: Only works for projects using includeAll and pointed towards a /migration dir");
+        System.out.println("    Just use this path: resources/db/changelog/migrations");
         System.out.println();
-        System.out.println("L'exemple genere un fichier avec un template pret a recevoir du sql sous le format");
-        System.out.println("yyyyMMddHHmmss_nom_de_la_migration.sql");
+        System.out.println("java -jar liquishit.jar [author] [changelog_name] [flags...]");
+        System.out.println("    Example: java -jar liquishit.jar wildsource create_user_table");
+        System.out.println();
+        System.out.println("The example above generate an sql changelog");
+        System.out.println("yyyyMMddHHmm_nom_de_la_migration.sql");
+        System.out.println();
+        System.out.println("OPTIONS:");
+        System.out.println("    -s --seconds        add seconds to timestamp of changelog");
+        System.out.println("    -r --rollback       add rollback in the changelog");
     }
 
     public static void main(String[] args) {
@@ -22,21 +36,33 @@ public class Main {
             System.exit(1);
         }
 
-        // Limit argument input amount
-        if (args.length > 2) {
-            System.out.println("Erreur: trop d'argument fournit, il faut juste l'auteur et le nom de la migration.");
-            System.exit(1);
-        }
-
         // Get arguments
         String author = args[0];
         String migrationName = args[1];
 
+        Set<String> mainArguments = new HashSet<>(Arrays.asList(author, migrationName));
+        Set<String> arguments = new HashSet<>(List.of(args));
+        arguments.removeAll(mainArguments);
+
+        List<String> flags = new ArrayList<>(arguments);
+
+        if (!flags.isEmpty()) {
+            for (String flag : flags) {
+                switch (flag) {
+                    case "-s", "--seconds" -> formatter = SECONDS_FORMATTER;
+                    case "-r", "--rollback" -> hasRollback = true;
+                    default -> {
+                        System.out.println("Error: flag \"" + flag + "\" not recognized");
+                        help();
+                        System.exit(1);
+                    }
+                }
+            }
+        }
+
         // Get timestamp
         LocalDateTime now = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
         String timestamp = now.format(formatter);
-
         String migrationFilepath = "src/main/resources/db/changelog/migrations/" + timestamp + "_" + migrationName + ".sql";
 
         try {
@@ -44,9 +70,9 @@ public class Main {
 
             // Create file
             if (migrationFile.createNewFile()) {
-                System.out.println("Le fichier de migration " + migrationFilepath + " a ete creer avec succes !");
+                System.out.println("The changelog " + migrationFilepath + " was generated successfully !");
             } else {
-                System.out.println("Erreur : le fichier de migration " + migrationFilepath + " existe deja.");
+                System.out.println("Error: Changelog " + migrationFilepath + " already exists");
                 System.exit(1);
             }
 
@@ -55,16 +81,22 @@ public class Main {
                 myWriter.write("--liquibase formatted sql\n");
                 myWriter.write("\n");
                 myWriter.write("--changeset " + author + ":" + timestamp + "_" + migrationName +"\n");
-                myWriter.write("------> Sql ici <------\n");
+                myWriter.write("------> Sql here <------\n");
+                myWriter.write("\n");
 
-                System.out.println("Ecriture du template sql effectuer avec succes !");
+                if (hasRollback) {
+                    myWriter.write("--rollback /* --> sql here <-- */\n");
+                }
+
+                System.out.println("Writing template to changelog successful !");
             } catch (IOException e) {
-                System.out.println("Erreur: une erreur est survenue avec l'ecriture du template sql");
+                System.out.println("Error: Writing to changelog failed");
+                System.out.println("Here's the stack trace:");
                 e.printStackTrace();
             }
         } catch (IOException e) {
-            System.out.println("Erreur: erreur d'IO, demerde toi.");
-            System.out.println("Tiens, la stack trace.");
+            System.out.println("Error: Something went wrong with IO");
+            System.out.println("Here's the stack trace:");
             e.printStackTrace();
         }
     }
